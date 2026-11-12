@@ -1,0 +1,288 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Do you hear it?"><link rel="apple-touch-icon" href="../icon-180.png"><title>Do you hear it?</title><style>body{margin:0}[hidden]{display:none!important}</style></head><body><link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* The listening test of the attribution bench (GAS-542), in the ratings site's style: one item per screen, thumb-sized
+   controls, the dock at the bottom. Made by benches/listening.py page (gaslab-attribution-bench). */
+:root {
+  --bg: #f3f3f7; --panel: #ffffff; --raised: #e9e9f1; --line: #d9d9e4; --fg: #15151c; --muted: #5d5d6e;
+  --accent: #3b37e6; --accent-ink: #ffffff; --accent-soft: #e6e5ff; --ok: #1d7a4e; --no: #b3261e;
+  --ui: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --radius: 16px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #101016; --panel: #1a1a22; --raised: #24242e; --line: #30303c; --fg: #ececf3; --muted: #9494a6;
+  --accent: #a29fff; --accent-ink: #111033; --accent-soft: #2a2950; --ok: #6fd3a2; --no: #ff8a80; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #101016; --panel: #1a1a22; --raised: #24242e; --line: #30303c; --fg: #ececf3; --muted: #9494a6;
+  --accent: #a29fff; --accent-ink: #111033; --accent-soft: #2a2950; --ok: #6fd3a2; --no: #ff8a80; color-scheme: dark }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font: 16px/1.5 var(--ui); padding-inline: max(16px, env(safe-area-inset-left, 0px)) max(16px, env(safe-area-inset-right, 0px)); }
+button { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.app { max-width: 560px; margin: 0 auto; padding-block: 18px calc(104px + env(safe-area-inset-bottom, 0px)); display: grid; gap: 16px; }
+.top { display: grid; gap: 10px; }
+.eyebrow { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+h1 { font-size: 22px; line-height: 1.2; margin: 2px 0 0; text-wrap: balance; }
+.meter { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; }
+.bar { height: 6px; border-radius: 3px; background: var(--raised); overflow: hidden; }
+.bar i { display: block; height: 100%; width: 0; background: var(--accent); border-radius: 3px; transition: width .3s ease; }
+.count { font: 500 13px/1 var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; background: none; border: 0; padding: 6px 0; }
+.itemno { margin: 0; font: 500 13px/1 var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.intro { background: var(--accent-soft); border-radius: var(--radius); padding: 14px 16px; display: grid; gap: 6px; }
+.intro p { margin: 0; font-size: 15px; }
+.shown { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px 16px; display: grid; gap: 12px; }
+.label { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.question { margin: 0; font-size: 19px; font-weight: 600; line-height: 1.35; text-wrap: balance; }
+.tracks { display: grid; gap: 12px; }
+.track { background: var(--panel); border: 2px solid var(--line); border-radius: var(--radius); padding: 14px 16px 16px; display: grid; gap: 12px; transition: border-color .15s, background .15s; }
+.track.picked { border-color: var(--accent); background: var(--accent-soft); }
+.track-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.tname { font-weight: 700; font-size: 17px; }
+.badge { font-size: 12px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--accent); }
+.player { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; }
+.play { width: 52px; height: 52px; border-radius: 50%; border: 0; background: var(--fg); color: var(--bg); display: grid; place-items: center; }
+.play svg { width: 20px; height: 20px; fill: currentColor; }
+.seek { width: 100%; accent-color: var(--accent); height: 28px; }
+.time { font: 500 13px/1 var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; min-width: 4ch; text-align: right; }
+.pick { min-height: 50px; border-radius: 12px; border: 1.5px solid var(--accent); background: transparent; color: var(--accent); font-weight: 700; font-size: 16px; }
+.track.picked .pick { background: var(--accent); color: var(--accent-ink); }
+.feedback { margin: 0; padding: 12px 14px; border-radius: 12px; background: var(--panel); border: 1.5px solid var(--ok); font-weight: 600; }
+.feedback.no { border-color: var(--no); }
+.dock { position: fixed; left: 0; right: 0; bottom: 0; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px); border-top: 1px solid var(--line); padding: 12px max(16px, env(safe-area-inset-left, 0px)) calc(12px + env(safe-area-inset-bottom, 0px)); }
+.dock-in { max-width: 560px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1.6fr; gap: 10px; }
+.nav { min-height: 54px; border-radius: 14px; border: 1px solid var(--line); background: var(--panel); font-weight: 700; font-size: 16px; }
+.nav.primary { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.nav:disabled { opacity: .4; cursor: default; }
+.status { margin: 0; font-size: 13px; color: var(--muted); text-align: center; }
+.done { display: grid; gap: 16px; }
+.done h2 { font-size: 24px; line-height: 1.2; margin: 0; text-wrap: balance; }
+.lede { margin: 0; color: var(--muted); }
+.send { display: grid; gap: 10px; }
+.btn { min-height: 52px; border-radius: 14px; border: 0; background: var(--accent); color: var(--accent-ink); font-weight: 700; font-size: 16px; }
+.btn.quiet { background: var(--panel); color: var(--fg); border: 1px solid var(--line); }
+.btn.wa { display: grid; place-items: center; text-decoration: none; }
+#sendText { width: 100%; min-width: 0; font: 13px/1.4 var(--mono); background: var(--panel); color: var(--fg); border: 1px solid var(--line); border-radius: 10px; padding: 10px; resize: none; }
+.offline { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; display: grid; gap: 10px; }
+.offline p { margin: 0; font-size: 14px; color: var(--muted); } .offline b { color: var(--fg); }
+.offline button { min-height: 46px; border-radius: 12px; border: 1.5px solid var(--accent); background: transparent; color: var(--accent); font-weight: 700; font-size: 15px; }
+.offline.ready { border-color: var(--ok); } .offline.ready b { color: var(--ok); }
+body:not([data-first]) .offline { display: none; }
+</style>
+
+<main class="app">
+  <header class="top">
+    <div><div class="eyebrow">Listening test · A or B</div><h1>Do you hear it?</h1></div>
+    <div class="meter"><div class="bar" aria-hidden="true"><i id="barFill"></i></div><button class="count" id="count" type="button"></button></div>
+  </header>
+
+  <section id="itemView" aria-live="polite" style="display:grid;gap:14px">
+    <p class="itemno" id="itemNo"></p>
+    <div class="intro" id="intro" hidden>
+      <p><b>How it works.</b> You hear a short piece, then two tracks. One of the two has that piece in it, sometimes
+        changed: higher, quieter, or inside another song. Pick that track; when you're not sure, go with your first feeling.</p>
+      <p>This first one is an example, with the answer shown. Headphones work best. About 25 minutes; you can stop any
+        time, your answers stay on this phone.</p>
+    </div>
+    <div class="shown">
+      <span class="label" id="shownLabel"></span>
+      <div id="shownPlayer"></div>
+      <p class="question" id="question"></p>
+    </div>
+    <div class="tracks" id="tracks"></div>
+    <p class="feedback" id="feedback" hidden></p>
+  </section>
+
+  <section class="done" id="doneView" hidden>
+    <h2 id="doneTitle"></h2>
+    <p class="lede" id="doneLede"></p>
+    <div class="send">
+      <a class="btn wa" id="waBtn" href="#" target="_blank" rel="noopener">Send my answers on WhatsApp</a>
+      <button class="btn quiet" id="sendBtn" type="button">Copy my answers</button>
+      <textarea id="sendText" rows="3" readonly hidden aria-label="Your answers, to send"></textarea>
+    </div>
+    <button class="btn quiet" id="review" type="button">Back to the items</button>
+  </section>
+
+  <p class="status" id="status">Your answers are kept on this phone. At the end you send them with one tap.</p>
+</main>
+
+<nav class="dock" aria-label="Items">
+  <div class="dock-in">
+    <button class="nav" id="prev" type="button">‹ Back</button>
+    <button class="nav primary" id="next" type="button">Next ›</button>
+  </div>
+</nav>
+
+<script>
+const ITEMS = [{"n":0,"block":"drums","clips":["audio/00-0.mp3","audio/00-1.mp3","audio/00-2.mp3"],"example":true,"right":2},{"n":1,"block":"drums","clips":["audio/01-0.mp3","audio/01-1.mp3","audio/01-2.mp3"]},{"n":2,"block":"drums","clips":["audio/02-0.mp3","audio/02-1.mp3","audio/02-2.mp3"]},{"n":3,"block":"drums","clips":["audio/03-0.mp3","audio/03-1.mp3","audio/03-2.mp3"]},{"n":4,"block":"drums","clips":["audio/04-0.mp3","audio/04-1.mp3","audio/04-2.mp3"]},{"n":5,"block":"drums","clips":["audio/05-0.mp3","audio/05-1.mp3","audio/05-2.mp3"]},{"n":6,"block":"drums","clips":["audio/06-0.mp3","audio/06-1.mp3","audio/06-2.mp3"]},{"n":7,"block":"drums","clips":["audio/07-0.mp3","audio/07-1.mp3","audio/07-2.mp3"]},{"n":8,"block":"drums","clips":["audio/08-0.mp3","audio/08-1.mp3","audio/08-2.mp3"]},{"n":9,"block":"drums","clips":["audio/09-0.mp3","audio/09-1.mp3","audio/09-2.mp3"]},{"n":10,"block":"drums","clips":["audio/10-0.mp3","audio/10-1.mp3","audio/10-2.mp3"]},{"n":11,"block":"drums","clips":["audio/11-0.mp3","audio/11-1.mp3","audio/11-2.mp3"]},{"n":12,"block":"drums","clips":["audio/12-0.mp3","audio/12-1.mp3","audio/12-2.mp3"]},{"n":13,"block":"drums","clips":["audio/13-0.mp3","audio/13-1.mp3","audio/13-2.mp3"]},{"n":14,"block":"drums","clips":["audio/14-0.mp3","audio/14-1.mp3","audio/14-2.mp3"]},{"n":15,"block":"drums","clips":["audio/15-0.mp3","audio/15-1.mp3","audio/15-2.mp3"]},{"n":16,"block":"bass","clips":["audio/16-0.mp3","audio/16-1.mp3","audio/16-2.mp3"]},{"n":17,"block":"bass","clips":["audio/17-0.mp3","audio/17-1.mp3","audio/17-2.mp3"]},{"n":18,"block":"bass","clips":["audio/18-0.mp3","audio/18-1.mp3","audio/18-2.mp3"]},{"n":19,"block":"bass","clips":["audio/19-0.mp3","audio/19-1.mp3","audio/19-2.mp3"]},{"n":20,"block":"bass","clips":["audio/20-0.mp3","audio/20-1.mp3","audio/20-2.mp3"]},{"n":21,"block":"bass","clips":["audio/21-0.mp3","audio/21-1.mp3","audio/21-2.mp3"]},{"n":22,"block":"bass","clips":["audio/22-0.mp3","audio/22-1.mp3","audio/22-2.mp3"]},{"n":23,"block":"bass","clips":["audio/23-0.mp3","audio/23-1.mp3","audio/23-2.mp3"]},{"n":24,"block":"bass","clips":["audio/24-0.mp3","audio/24-1.mp3","audio/24-2.mp3"]},{"n":25,"block":"bass","clips":["audio/25-0.mp3","audio/25-1.mp3","audio/25-2.mp3"]},{"n":26,"block":"bass","clips":["audio/26-0.mp3","audio/26-1.mp3","audio/26-2.mp3"]},{"n":27,"block":"bass","clips":["audio/27-0.mp3","audio/27-1.mp3","audio/27-2.mp3"]},{"n":28,"block":"bass","clips":["audio/28-0.mp3","audio/28-1.mp3","audio/28-2.mp3"]},{"n":29,"block":"bass","clips":["audio/29-0.mp3","audio/29-1.mp3","audio/29-2.mp3"]},{"n":30,"block":"bass","clips":["audio/30-0.mp3","audio/30-1.mp3","audio/30-2.mp3"]},{"n":31,"block":"vocals","clips":["audio/31-0.mp3","audio/31-1.mp3","audio/31-2.mp3"]},{"n":32,"block":"vocals","clips":["audio/32-0.mp3","audio/32-1.mp3","audio/32-2.mp3"]},{"n":33,"block":"vocals","clips":["audio/33-0.mp3","audio/33-1.mp3","audio/33-2.mp3"]},{"n":34,"block":"vocals","clips":["audio/34-0.mp3","audio/34-1.mp3","audio/34-2.mp3"]},{"n":35,"block":"vocals","clips":["audio/35-0.mp3","audio/35-1.mp3","audio/35-2.mp3"]},{"n":36,"block":"vocals","clips":["audio/36-0.mp3","audio/36-1.mp3","audio/36-2.mp3"]},{"n":37,"block":"vocals","clips":["audio/37-0.mp3","audio/37-1.mp3","audio/37-2.mp3"]},{"n":38,"block":"vocals","clips":["audio/38-0.mp3","audio/38-1.mp3","audio/38-2.mp3"]},{"n":39,"block":"vocals","clips":["audio/39-0.mp3","audio/39-1.mp3","audio/39-2.mp3"]},{"n":40,"block":"vocals","clips":["audio/40-0.mp3","audio/40-1.mp3","audio/40-2.mp3"]},{"n":41,"block":"vocals","clips":["audio/41-0.mp3","audio/41-1.mp3","audio/41-2.mp3"]},{"n":42,"block":"vocals","clips":["audio/42-0.mp3","audio/42-1.mp3","audio/42-2.mp3"]},{"n":43,"block":"vocals","clips":["audio/43-0.mp3","audio/43-1.mp3","audio/43-2.mp3"]},{"n":44,"block":"vocals","clips":["audio/44-0.mp3","audio/44-1.mp3","audio/44-2.mp3"]},{"n":45,"block":"vocals","clips":["audio/45-0.mp3","audio/45-1.mp3","audio/45-2.mp3"]},{"n":46,"block":"bass","clips":["audio/46-0.mp3","audio/46-1.mp3","audio/46-2.mp3"]},{"n":47,"block":"bass","clips":["audio/47-0.mp3","audio/47-1.mp3","audio/47-2.mp3"]},{"n":48,"block":"melody","clips":["audio/48-0.mp3","audio/48-1.mp3","audio/48-2.mp3"]},{"n":49,"block":"melody","clips":["audio/49-0.mp3","audio/49-1.mp3","audio/49-2.mp3"]},{"n":50,"block":"melody","clips":["audio/50-0.mp3","audio/50-1.mp3","audio/50-2.mp3"]},{"n":51,"block":"melody","clips":["audio/51-0.mp3","audio/51-1.mp3","audio/51-2.mp3"]},{"n":52,"block":"melody","clips":["audio/52-0.mp3","audio/52-1.mp3","audio/52-2.mp3"]},{"n":53,"block":"melody","clips":["audio/53-0.mp3","audio/53-1.mp3","audio/53-2.mp3"]},{"n":54,"block":"melody","clips":["audio/54-0.mp3","audio/54-1.mp3","audio/54-2.mp3"]},{"n":55,"block":"melody","clips":["audio/55-0.mp3","audio/55-1.mp3","audio/55-2.mp3"]},{"n":56,"block":"melody","clips":["audio/56-0.mp3","audio/56-1.mp3","audio/56-2.mp3"]},{"n":57,"block":"melody","clips":["audio/57-0.mp3","audio/57-1.mp3","audio/57-2.mp3"]},{"n":58,"block":"melody","clips":["audio/58-0.mp3","audio/58-1.mp3","audio/58-2.mp3"]},{"n":59,"block":"melody","clips":["audio/59-0.mp3","audio/59-1.mp3","audio/59-2.mp3"]},{"n":60,"block":"melody","clips":["audio/60-0.mp3","audio/60-1.mp3","audio/60-2.mp3"]},{"n":61,"block":"melody","clips":["audio/61-0.mp3","audio/61-1.mp3","audio/61-2.mp3"]},{"n":62,"block":"melody","clips":["audio/62-0.mp3","audio/62-1.mp3","audio/62-2.mp3"]},{"n":63,"block":"upload","clips":["audio/63-0.mp3","audio/63-1.mp3","audio/63-2.mp3"]},{"n":64,"block":"upload","clips":["audio/64-0.mp3","audio/64-1.mp3","audio/64-2.mp3"]},{"n":65,"block":"upload","clips":["audio/65-0.mp3","audio/65-1.mp3","audio/65-2.mp3"]},{"n":66,"block":"upload","clips":["audio/66-0.mp3","audio/66-1.mp3","audio/66-2.mp3"]},{"n":67,"block":"upload","clips":["audio/67-0.mp3","audio/67-1.mp3","audio/67-2.mp3"]},{"n":68,"block":"upload","clips":["audio/68-0.mp3","audio/68-1.mp3","audio/68-2.mp3"]},{"n":69,"block":"upload","clips":["audio/69-0.mp3","audio/69-1.mp3","audio/69-2.mp3"]},{"n":70,"block":"upload","clips":["audio/70-0.mp3","audio/70-1.mp3","audio/70-2.mp3"]},{"n":71,"block":"upload","clips":["audio/71-0.mp3","audio/71-1.mp3","audio/71-2.mp3"]},{"n":72,"block":"upload","clips":["audio/72-0.mp3","audio/72-1.mp3","audio/72-2.mp3"]},{"n":73,"block":"upload","clips":["audio/73-0.mp3","audio/73-1.mp3","audio/73-2.mp3"]},{"n":74,"block":"upload","clips":["audio/74-0.mp3","audio/74-1.mp3","audio/74-2.mp3"]},{"n":75,"block":"melody","clips":["audio/75-0.mp3","audio/75-1.mp3","audio/75-2.mp3"]},{"n":76,"block":"melody","clips":["audio/76-0.mp3","audio/76-1.mp3","audio/76-2.mp3"]}];
+const KEY = "listen1112", MB = 21;
+const BLOCK = { drums: "Drums", bass: "Bass", vocals: "Vocals", melody: "Melody", upload: "Uploads" };
+const NOUN = { drums: "these drums", bass: "this bass", vocals: "these vocals", melody: "this melody" };
+const ICON_PLAY = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 2.5v11l9-5.5z"/></svg>';
+const ICON_PAUSE = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 2.5h3v11h-3zM9.5 2.5h3v11h-3z"/></svg>';
+const $ = id => document.getElementById(id);
+const clock = t => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, "0")}`;
+const store = { get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } },
+                set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} } };
+function el(tag, attrs = {}, ...kids) {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) k === "class" ? n.className = v : k.startsWith("on") ? n.addEventListener(k.slice(2), v) : n.setAttribute(k, v);
+  for (const k of kids) if (k != null) n.append(k);
+  return n;
+}
+
+const counted = ITEMS.filter(it => !it.example);
+let picks = store.get(`listen:${KEY}`) || {};
+let idx = Math.min(store.get(`listen:${KEY}:at`) || 0, ITEMS.length - 1), view = "item";
+
+// The players of an item, made when it is first shown. The clips loop; switching while one plays starts the other at
+// the same moment, so the two tracks can be compared bar for bar.
+const audios = new Set();
+function stopAll() { audios.forEach(a => a.pause()); }
+function player(src) {
+  const audio = new Audio(); audio.preload = "auto"; audio.loop = true; audio.src = src;
+  const btn = el("button", { class: "play", type: "button", "aria-label": "Play" });
+  const seek = el("input", { class: "seek", type: "range", min: "0", max: "8", step: "0.05", value: "0", "aria-label": "Position" });
+  const time = el("span", { class: "time" }, "0:00");
+  btn.innerHTML = ICON_PLAY;
+  btn.addEventListener("click", () => {
+    if (!audio.paused) return audio.pause();
+    const other = [...audios].find(a => a !== audio && !a.paused);
+    stopAll();
+    if (other) audio.currentTime = Math.min(other.currentTime, Math.max(0, (audio.duration || 8) - 0.05));
+    audio.play().catch(() => {});
+  });
+  audio.addEventListener("play", () => { btn.innerHTML = ICON_PAUSE; btn.setAttribute("aria-label", "Pause"); });
+  audio.addEventListener("pause", () => { btn.innerHTML = ICON_PLAY; btn.setAttribute("aria-label", "Play"); });
+  audio.addEventListener("loadedmetadata", () => { seek.max = String(audio.duration || 8); });
+  audio.addEventListener("timeupdate", () => { seek.value = String(audio.currentTime); time.textContent = clock(audio.currentTime); });
+  seek.addEventListener("input", () => { audio.currentTime = Number(seek.value); });
+  audios.add(audio);
+  return el("div", { class: "player" }, btn, seek, time);
+}
+const views = {};
+function itemView(it) {
+  if (views[it.n]) return views[it.n];
+  const shown = player(it.clips[0]);
+  const cards = [1, 2].map(k => {
+    const pick = el("button", { class: "pick", type: "button", onclick: () => choose(it, k) }, `Pick track ${k}`);
+    const badge = el("span", { class: "badge", hidden: "" }, "Your pick");
+    const card = el("article", { class: "track", "aria-label": `Track ${k}` },
+      el("div", { class: "track-head" }, el("span", { class: "tname" }, `Track ${k}`), badge), player(it.clips[k]), pick);
+    return { k, card, pick, badge };
+  });
+  return (views[it.n] = { shown, cards });
+}
+
+function answered() { return counted.filter(it => picks[it.n]).length; }
+function render() {
+  const n = answered();
+  $("barFill").style.width = `${Math.round(100 * n / counted.length)}%`;
+  $("count").textContent = `${n} of ${counted.length} answered`;
+  $("itemView").hidden = view !== "item"; $("doneView").hidden = view !== "done";
+  document.body.toggleAttribute("data-first", view === "item" && !!ITEMS[idx].example);  // the offline box only there
+  $("prev").disabled = view === "item" && idx === 0;
+  $("next").textContent = view === "done" ? "Start again" : idx === ITEMS.length - 1 ? "Finish" : "Next ›";
+  if (view === "done") return renderDone();
+  const it = ITEMS[idx], v = itemView(it), stem = it.block !== "upload";
+  $("itemNo").textContent = it.example ? "Example" : `${BLOCK[it.block]} · item ${counted.indexOf(it) + 1} of ${counted.length}`;
+  $("intro").hidden = !it.example;
+  $("shownLabel").textContent = stem ? `Listen: ${NOUN[it.block]}, on their own` : "Listen: the upload";
+  $("shownPlayer").replaceChildren(v.shown);
+  $("question").textContent = stem ? `Which track has ${NOUN[it.block]} in it?` : "Which track was made from this upload?";
+  $("tracks").replaceChildren(...v.cards.map(c => {
+    const on = picks[it.n] === c.k;
+    c.card.classList.toggle("picked", on); c.badge.hidden = !on;
+    c.pick.textContent = on ? "Your pick" : `Pick track ${c.k}`;
+    return c.card;
+  }));
+  const fb = $("feedback");
+  fb.hidden = !(it.example && picks[it.n]);
+  if (!fb.hidden) {
+    const ok = picks[it.n] === it.right;
+    fb.className = `feedback${ok ? "" : " no"}`;
+    fb.textContent = `${ok ? "Right" : "Not this time"}: track ${it.right} has ${NOUN[it.block]} in it. In the test itself you won't see the answer. Tap Next to start.`;
+  }
+  store.set(`listen:${KEY}:at`, idx);
+}
+
+function renderDone() {
+  const n = answered(), all = n === counted.length;
+  $("doneTitle").textContent = all ? "Thanks, that's all of them" : `You answered ${n} of ${counted.length}`;
+  $("doneLede").textContent = all ? "Send your answers with the WhatsApp button below." : "You can go back and do the rest, or send what you have with the button below.";
+  $("waBtn").href = `https://wa.me/?text=${encodeURIComponent(answersText())}`;
+}
+
+function choose(it, k) {
+  picks = { ...picks, [it.n]: k };
+  store.set(`listen:${KEY}`, picks);
+  render();
+  if (it.example) return;
+  setTimeout(() => {                                  // on to the next item without an answer
+    if (view !== "item" || ITEMS[idx].n !== it.n) return;
+    stopAll();
+    const next = ITEMS.findIndex((x, j) => j > idx && !x.example && !picks[x.n]);
+    if (next >= 0) idx = next; else if (answered() === counted.length) view = "done"; else if (idx < ITEMS.length - 1) idx++;
+    render(); window.scrollTo({ top: 0, behavior: "smooth" });
+  }, 650);
+}
+
+$("prev").addEventListener("click", () => { stopAll(); if (view === "done") { view = "item"; idx = ITEMS.length - 1; } else if (idx > 0) idx--; render(); window.scrollTo({ top: 0 }); });
+$("next").addEventListener("click", () => { stopAll(); if (view === "done") { view = "item"; idx = 0; } else if (idx < ITEMS.length - 1) idx++; else view = "done"; render(); window.scrollTo({ top: 0 }); });
+$("count").addEventListener("click", () => { stopAll(); view = "done"; render(); });
+$("review").addEventListener("click", () => { view = "item"; const open = ITEMS.findIndex(x => !x.example && !picks[x.n]); idx = open >= 0 ? open : 0; render(); window.scrollTo({ top: 0 }); });
+document.addEventListener("keydown", e => {
+  if (view !== "item" || e.target.closest("input, textarea")) return;
+  if (e.key === "ArrowRight") $("next").click(); else if (e.key === "ArrowLeft") $("prev").click();
+  else if (e.key === "1" || e.key === "2") choose(ITEMS[idx], Number(e.key));
+});
+
+// The answers as a short text: item number - track number, for the grade (benches/listening.py)
+function answersText() {
+  return `${KEY} ` + counted.filter(it => picks[it.n]).map(it => `${it.n}-${picks[it.n]}`).join(" ");
+}
+$("sendBtn").addEventListener("click", async () => {
+  const text = answersText();
+  $("sendText").value = text; $("sendText").hidden = false; $("sendText").select();
+  try { await navigator.clipboard.writeText(text); $("sendBtn").textContent = "Copied: paste it in a message"; } catch (e) { $("sendBtn").textContent = "Copy the text below"; }
+});
+render();
+</script>
+<script>
+(() => {  // offline: the page is kept by the ratings site's worker; "Save for offline" stores every clip of this test
+  if (!("serviceWorker" in navigator) || !("caches" in window)) return;
+  const had = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener("controllerchange", () => { if (had && !sessionStorage.getItem("sw-reloaded")) { try { sessionStorage.setItem("sw-reloaded", "1"); } catch (e) {} location.reload(); } });
+  navigator.serviceWorker.register("../sw.js", { scope: "../", updateViaCache: "none" }).catch(() => {});
+  const urls = [...new Set(ITEMS.flatMap(it => it.clips))].map(u => new URL(u, location.href).href);
+  const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const home = navigator.standalone || matchMedia("(display-mode: standalone)").matches;
+  const box = el("section", { class: "offline", "aria-live": "polite" }), text = el("p"), btn = el("button", { type: "button" }, `Save for offline (${MB} MB)`);
+  const tip = ios && !home ? el("p", {}, "On iPhone: first tap Share, then “Add to Home Screen”, open the test from there and save it there. Safari and the Home Screen keep separate copies.") : null;
+  box.append(text, ...(tip ? [tip] : []), btn);
+  document.querySelector(".top").after(box);
+  async function count() { const c = await caches.open("ratings-v1"); return (await Promise.all(urls.map(u => c.match(u)))).filter(Boolean).length; }
+  async function show() {
+    const n = await count(), done = n === urls.length;
+    box.classList.toggle("ready", done); btn.hidden = done; if (tip) tip.hidden = done;
+    text.replaceChildren(...(done ? [el("b", {}, "Saved on this phone."), " This test works without internet now."]
+      : [el("b", {}, "Listen without internet?"), ` Save the ${urls.length} clips on your phone first, while you have Wi-Fi.` + (n ? ` (${n} already saved)` : "")]));
+  }
+  btn.addEventListener("click", async () => {
+    btn.disabled = true;
+    try { if (navigator.storage && navigator.storage.persist) await navigator.storage.persist(); } catch (e) {}
+    const c = await caches.open("ratings-v1");
+    try { await c.put(location.origin + location.pathname, await fetch(location.pathname, { cache: "reload" })); } catch (e) {}
+    let n = 0, failed = 0;
+    for (const u of urls) {
+      if (!(await c.match(u))) { try { const r = await fetch(u); if (r.ok && r.status === 200) await c.put(u, r); else failed++; } catch (e) { failed++; } }
+      btn.textContent = `Saving… ${++n} of ${urls.length}`;
+    }
+    btn.disabled = false; btn.textContent = failed ? "Some clips didn't save: tap to try again" : `Save for offline (${MB} MB)`;
+    show();
+  });
+  show();
+})();
+</script></body></html>
