@@ -136,6 +136,11 @@ function el(tag, attrs = {}, ...kids) {
 const counted = ITEMS.filter(it => !it.example);
 let picks = store.get(`listen:${KEY}`) || {};
 let idx = Math.min(store.get(`listen:${KEY}:at`) || 0, ITEMS.length - 1), view = "item";
+const RESET = 1;   // raise it to clear every phone's answers to this round once (a tester's tries before the real run)
+if ((store.get(`listen:${KEY}:reset`) || 0) < RESET) {
+  picks = {}; idx = 0;
+  store.set(`listen:${KEY}`, picks); store.set(`listen:${KEY}:at`, 0); store.set(`listen:${KEY}:reset`, RESET);
+}
 
 // The players of an item, made when it is first shown. The clips loop; switching while one plays starts the other at
 // the same moment, so the two tracks can be compared bar for bar.
